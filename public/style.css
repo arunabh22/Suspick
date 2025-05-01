@@ -1,0 +1,29 @@
+body {
+  font-family: Arial;
+  text-align: center;
+  padding: 20px;
+}
+
+#urlInput {
+  width: 60%;
+  padding: 10px;
+}
+
+#progressContainer {
+  width: 60%;
+  background: #ddd;
+  height: 20px;
+  margin: 20px auto;
+}
+
+#progressBar {
+  height: 100%;
+  width: 0%;
+  background-color: green;
+  transition: width 0.5s;
+}
+
+#result {
+  margin-top: 20px;
+  font-size: 18px;
+}
