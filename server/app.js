@@ -98,10 +98,15 @@ const threatData = await checkSafeBrowsing(url);
 console.log('Safe Browsing API returned:', JSON.stringify(threatData, null, 2));
 
 if (threatData?.matches) {
-  reasons.unshift('🚨 Flagged by Google Safe Browsing API');
+  //reasons.unshift('🚨 Flagged by Google Safe Browsing API');
+  const threatType = threatData.matches[0]?.threatType || 'Unknown Threat';
+reasons.unshift(`🚨 Flagged by Google Safe Browsing API (${threatType})`);
+
   score = 0;
   verdict = 'suspicious';
 }
+
+
 
     return res.json({ verdict, progress: 100, score, reasons });
 
