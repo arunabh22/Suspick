@@ -8,8 +8,14 @@
 </head>
 <body>
   <h1>Suspicious Website Analyzer</h1>
-  <input type="text" id="urlInput" placeholder="Enter a URL..." />
-  <button onclick="analyzeURL()">Test</button>
+  <div class="input-group">
+    <input type="text" id="urlInput" placeholder="Enter a URL..." />
+    <label>
+      <input type="checkbox" id="deepScanToggle" />
+      Deep Scan (Safe Browsing API)
+    </label>
+  </div>
+  <button onclick="analyzeURL()">Test URL</button>
 
   <div id="progressContainer">
     <div id="progressBar"></div>
