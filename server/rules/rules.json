@@ -1,31 +1,14 @@
 {
-  "badTLDs": [
-    ".xyz",
-    ".tk",
-    ".top",
-    ".buzz",
-    ".club",
-    ".online",
-    ".info"
+  "badTLDs": [".xyz", ".tk", ".top", ".buzz", ".club", ".online", ".info"],
+  "validTLDs": [".com", ".org", ".net", ".gov", ".edu", ".io", ".co", ".in"],
+  "suspiciousKeywords": [
+    "login", "update", "password", "urgent",
+    "account", "limited time", "click here", "confirm", "reset"
   ],
-  "keywords": [
-    "login",
-    "verify",
-    "bank",
-    "urgent",
-    "password",
-    "account",
-    "limited time",
-    "click here",
-    "confirm",
-    "reset"
+  "suspiciousPatterns": [
+    "@.*\\.", "free[-]?\\w*", ".*\\.offer", "deal[-]?\\w*",
+    "gift[-]?\\w*", "bonus[-]?\\w*", "\\d{6,}", "free.*gift", "account.*disabled"
   ],
-  "urlPatterns": [
-    "@.*\\.",
-    "free[-]?\\w*",
-    ".*\\.offer",
-    "deal[-]?\\w*",
-    "gift[-]?\\w*",
-    "bonus[-]?\\w*"
-  ]
+  "domainAgeThresholdMonths": 2,
+  "externalLinkThreshold": 15
 }

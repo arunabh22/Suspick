@@ -1,56 +1,70 @@
-const fs = require('fs');
-const path = require('path');
+const { JSDOM } = require('jsdom');
 
-// Load heuristic rules once from rules.json
-const rulesPath = path.join(__dirname, '..', 'rules', 'rules.json');
-const rules = JSON.parse(fs.readFileSync(rulesPath, 'utf-8'));
-
-/**
- * Check if the URL's TLD is in the suspicious list
- */
-function checkTLD(url) {
-  try {
-    const { hostname } = new URL(url);
-    const tld = hostname.substring(hostname.lastIndexOf('.'));
-    if (rules.badTLDs.includes(tld)) {
-      return `Suspicious TLD: ${tld}`;
-    }
-  } catch (err) {
-    return null;
+function checkTLD(url, config) {
+  const domain = new URL(url).hostname;
+  if (!config.validTLDs.some(tld => domain.endsWith(tld))) {
+    return `Suspicious TLD found in domain: ${domain}`;
   }
   return null;
 }
 
-/**
- * Check if any fraud-related keyword exists in the page content
- */
-function checkKeywords(content) {
-  const matches = [];
-  for (const keyword of rules.keywords) {
-    const regex = new RegExp(`\\b${keyword}\\b`, 'i');
-    if (regex.test(content)) {
-      matches.push(`Keyword found: '${keyword}'`);
-    }
-  }
-  return matches;
+function checkKeywords(html, config) {
+  const found = config.suspiciousKeywords.filter(keyword =>
+    html.toLowerCase().includes(keyword.toLowerCase())
+  );
+  return found.map(k => `Keyword found: '${k}'`);
 }
 
-/**
- * Check if the URL matches any suspicious pattern
- */
-function checkPatterns(url) {
-  const matches = [];
-  for (const pattern of rules.urlPatterns) {
-    const regex = new RegExp(pattern, 'i');
-    if (regex.test(url)) {
-      matches.push(`Pattern match: ${pattern}`);
-    }
+function checkPatterns(url, config) {
+  return config.suspiciousPatterns
+    .map(pattern => new RegExp(pattern, 'i'))
+    .filter(regex => regex.test(url))
+    .map(p => `Suspicious pattern matched: ${p}`);
+}
+
+function checkSSL(url) {
+  const protocol = new URL(url).protocol;
+  if (protocol !== 'https:') {
+    return 'SSL not present: connection is not secure (HTTP)';
   }
-  return matches;
+  return null;
+}
+
+function checkDomainAge(whoisData, config) {
+  const creationDate = new Date(
+    whoisData.creationDate || whoisData.createdDate || whoisData.created
+  );
+  const ageInMonths = (Date.now() - creationDate.getTime()) / (1000 * 60 * 60 * 24 * 30);
+  if (isNaN(creationDate.getTime())) return null;
+  if (ageInMonths < config.domainAgeThresholdMonths) {
+    return `Domain age is less than ${config.domainAgeThresholdMonths} months (registered on ${creationDate.toISOString().split('T')[0]})`;
+  }
+  return null;
+}
+
+function checkExternalLinks(html, pageUrl, config) {
+  const dom = new JSDOM(html);
+  const anchors = [...dom.window.document.querySelectorAll('a[href]')];
+  const domain = new URL(pageUrl).hostname;
+  const externalLinks = anchors.filter(a => {
+    try {
+      const linkHost = new URL(a.href, pageUrl).hostname;
+      return !linkHost.includes(domain);
+    } catch {
+      return false;
+    }
+  });
+  if (externalLinks.length > config.externalLinkThreshold) {
+    return `Page contains ${externalLinks.length} external links, which may indicate suspicious redirection behavior.`;
+  }
+  return null;
 }
 
 module.exports = {
   checkTLD,
   checkKeywords,
-  checkPatterns
+  checkPatterns,
+  checkSSL,
+  checkDomainAge,
+  checkExternalLinks
 };
