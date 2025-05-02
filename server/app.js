@@ -86,12 +86,23 @@ app.post('/analyze', async (req, res) => {
     }
 
     // Deep scan: Safe Browsing API
-    const threatData = await checkSafeBrowsing(url);
-    if (threatData?.matches) {
-      reasons.unshift('🚨 Flagged by Google Safe Browsing API');
-      score = 0;
-      verdict = 'suspicious';
-    }
+//    const threatData = await checkSafeBrowsing(url);
+//    if (threatData?.matches) {
+//      reasons.unshift('🚨 Flagged by Google Safe Browsing API');
+//      score = 0;
+//      verdict = 'suspicious';
+//    }
+
+// Deep scan block in /analyze
+const threatData = await checkSafeBrowsing(url);
+console.log('Safe Browsing API returned:', JSON.stringify(threatData, null, 2));
+
+if (threatData?.matches) {
+  reasons.unshift('🚨 Flagged by Google Safe Browsing API');
+  score = 0;
+  verdict = 'suspicious';
+}
+
     return res.json({ verdict, progress: 100, score, reasons });
 
   } catch (error) {
