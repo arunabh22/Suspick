@@ -30,7 +30,19 @@ app.post('/analyze', async (req, res) => {
     return res.status(400).json({ error: 'Invalid URL format' });
   }
 
-  // Quick scan heuristics
+  // Run Safe Browsing *first* if deep scan is enabled
+  let verdict = 'safe';
+  if (deep) {
+    const threatData = await checkSafeBrowsing(url);
+    console.log('Safe Browsing API returned:', JSON.stringify(threatData, null, 2));
+
+    if (threatData?.matches) {
+      const threatType = threatData.matches[0]?.threatType || 'Unknown Threat';
+      reasons.unshift(`🚨 Flagged by Google Safe Browsing API (${threatType})`);
+      return res.json({ verdict: 'suspicious', progress: 100, score: 0, reasons });
+    }
+  }
+
   try {
     const response = await axios.get(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
@@ -79,41 +91,20 @@ app.post('/analyze', async (req, res) => {
     const anchorTextReasons = detectMaliciousAnchorText(dom);
     if (anchorTextReasons.length) { reasons.push(...anchorTextReasons); score -= anchorTextReasons.length * 10; }
 
-    // Early return for quick scan
-    let verdict = score < 70 ? 'suspicious' : 'safe';
-    if (!deep) {
-      return res.json({ verdict, progress: 100, score, reasons });
-    }
-
-    // Deep scan: Safe Browsing API
-//    const threatData = await checkSafeBrowsing(url);
-//    if (threatData?.matches) {
-//      reasons.unshift('🚨 Flagged by Google Safe Browsing API');
-//      score = 0;
-//      verdict = 'suspicious';
-//    }
-
-// Deep scan block in /analyze
-const threatData = await checkSafeBrowsing(url);
-console.log('Safe Browsing API returned:', JSON.stringify(threatData, null, 2));
-
-if (threatData?.matches) {
-  //reasons.unshift('🚨 Flagged by Google Safe Browsing API');
-  const threatType = threatData.matches[0]?.threatType || 'Unknown Threat';
-reasons.unshift(`🚨 Flagged by Google Safe Browsing API (${threatType})`);
-
-  score = 0;
-  verdict = 'suspicious';
-}
-
-
-
+    verdict = score < 70 ? 'suspicious' : 'safe';
     return res.json({ verdict, progress: 100, score, reasons });
 
   } catch (error) {
     console.error('Error fetching URL:', error.message);
+
+    // If deep mode, Safe Browsing already ran — we still return that result
+    if (deep && reasons.length) {
+      return res.json({ verdict: 'suspicious', progress: 100, score: 0, reasons });
+    }
+
     return res.status(500).json({ error: 'Failed to fetch URL content' });
   }
 });
+
 
 app.listen(3000, () => console.log('Server running on http://localhost:3000'));
