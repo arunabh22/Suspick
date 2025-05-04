@@ -27,3 +27,37 @@ body {
   margin-top: 20px;
   font-size: 18px;
 }
+#test-btn{
+    margin-top: 20px;
+    height: 70px;
+    width: 400px;
+    color: white;
+    background-color: black;
+    font-size: 30px;
+    font-style: bold;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    border-radius: 30px;
+}
+#deep{
+  margin-top: 20px;
+}
+.main{
+  font-family: 'Times New Roman', Times, serif;
+  font-size: 50px;
+  font-weight: bolder;
+}
+
+#deepScanToggle{
+  margin-top: 30px;
+}
+
+#deep{
+  font-size: 20px;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+#urlInput{
+  border-radius: 30px;
+  height: 30px;
+  font-size: 25px;
+  text-align: center;
+}

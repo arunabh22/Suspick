@@ -7,15 +7,15 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <h1>Suspicious Website Analyzer</h1>
+  <h1 class="main">SusPick</h1>
   <div class="input-group">
-    <input type="text" id="urlInput" placeholder="Enter a URL..." />
-    <label>
+    <input type="text" id="urlInput" placeholder="Enter an URL..." /><br>
+    <label id="deep">
       <input type="checkbox" id="deepScanToggle" />
       Deep Scan (Safe Browsing API)
     </label>
-  </div>
-  <button onclick="analyzeURL()">Test URL</button>
+  </div><br>
+  <button onclick="analyzeURL()"  id="test-btn">Test</button>
 
   <div id="progressContainer">
     <div id="progressBar"></div>
