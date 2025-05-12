@@ -1,5 +1,5 @@
 const { detectMaliciousAnchorText, analyzeDOM } = require('./utils/dom');
-const { checkTLD, checkKeywords, checkPatterns, checkSSL, checkDomainAge, checkExternalLinks } = require('./utils/heuristics');
+const { checkTLD, checkKeywords, checkPatterns, checkSSL, checkDomainAge, checkExternalLinks, checkWhitelistedDomain } = require('./utils/heuristics');
 const { checkSafeBrowsing } = require('./utils/safeBrowsing');
 const config = require('./rules/rules.json');
 const express = require('express');
@@ -9,6 +9,7 @@ const axios = require('axios');
 const path = require('path');
 const whois = require('whois-json');
 const { JSDOM } = require('jsdom');
+const { waitBeforeRequest } = require('./utils/delay');       //creating random delays file
 
 const app = express();
 app.use(cors());
@@ -30,6 +31,16 @@ app.post('/analyze', async (req, res) => {
     return res.status(400).json({ error: 'Invalid URL format' });
   }
 
+  //check whitelisted sites
+  if (checkWhitelistedDomain(url, config)) {
+  return res.json({
+    verdict: 'safe',
+    progress: 100,
+    score: 100,
+    reasons: ['✅ Domain is on the trusted whitelist']
+  });
+}
+
   // Run Safe Browsing *first* if deep scan is enabled
   let verdict = 'safe';
   if (deep) {
@@ -44,6 +55,7 @@ app.post('/analyze', async (req, res) => {
   }
 
   try {
+    await waitBeforeRequest();      //random delay
     const response = await axios.get(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' },
       timeout: 7000
@@ -53,17 +65,17 @@ app.post('/analyze', async (req, res) => {
 
     // 1. TLD
     const tldReason = checkTLD(url, config);
-    if (tldReason) { reasons.push(tldReason); score -= 30; }
+    if (tldReason) { reasons.push(tldReason); score -= 20; }
     progress = 15;
 
     // 2. Keywords
     const keywordReasons = checkKeywords(htmlContent, config);
-    if (keywordReasons.length) { reasons.push(...keywordReasons); score -= keywordReasons.length * 10; }
+    if (keywordReasons.length) { reasons.push(...keywordReasons); score -= keywordReasons.length * 5; }
     progress = 30;
 
     // 3. URL Patterns
     const patternReasons = checkPatterns(url, config);
-    if (patternReasons.length) { reasons.push(...patternReasons); score -= patternReasons.length * 10; }
+    if (patternReasons.length) { reasons.push(...patternReasons); score -= patternReasons.length * 5; }
     progress = 45;
 
     // 4. SSL
@@ -79,7 +91,7 @@ app.post('/analyze', async (req, res) => {
 
     // 6. External Links
     const externalLinksReason = checkExternalLinks(htmlContent, url, config);
-    if (externalLinksReason) { reasons.push(externalLinksReason); score -= 10; }
+    if (externalLinksReason) { reasons.push(externalLinksReason); score -= 5; }
     progress = 85;
 
     // 7. DOM Analysis
@@ -89,9 +101,10 @@ app.post('/analyze', async (req, res) => {
     // 8. Malicious Anchor Text
     const dom = new JSDOM(htmlContent, { url });
     const anchorTextReasons = detectMaliciousAnchorText(dom);
-    if (anchorTextReasons.length) { reasons.push(...anchorTextReasons); score -= anchorTextReasons.length * 10; }
+    if (anchorTextReasons.length) { reasons.push(...anchorTextReasons); score -= anchorTextReasons.length * 5; }
 
-    verdict = score < 70 ? 'suspicious' : 'safe';
+    verdict = score < 60 ? 'suspicious' : 'safe';
+    score = Math.max(0, score);
     return res.json({ verdict, progress: 100, score, reasons });
 
   } catch (error) {

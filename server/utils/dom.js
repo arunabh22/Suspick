@@ -16,7 +16,7 @@ function analyzeDOM(html, pageUrl) {
         const actionUrl = new URL(action, pageUrl);
         if (!actionUrl.hostname.includes(pageDomain)) {
           reasons.push(`Form posts to a different domain: ${actionUrl.hostname}`);
-          scorePenalty += 20;
+          scorePenalty += 15;
         }
         if (actionUrl.protocol !== 'https:') {
           reasons.push(`Form posts over insecure connection: ${actionUrl.href}`);
@@ -66,7 +66,7 @@ function analyzeDOM(html, pageUrl) {
   });
   if (iframes.length > 0 && document.body.children.length === 1 && document.body.firstElementChild.tagName === 'IFRAME') {
     reasons.push('Page is a full-screen iframe, which is often used in phishing.');
-    scorePenalty += 20;
+    scorePenalty += 10;
   }
 
   // 5. Suspicious Style Checks
@@ -89,7 +89,7 @@ function analyzeDOM(html, pageUrl) {
     const content = script.textContent || '';
     if (content.match(/eval\(|atob\(|Function\(|setTimeout\(/)) {
       reasons.push('Page uses obfuscated or dynamic script functions like eval or atob.');
-      scorePenalty += 15;
+      scorePenalty += 2;
     }
   });
 

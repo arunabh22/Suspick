@@ -60,11 +60,18 @@ function checkExternalLinks(html, pageUrl, config) {
   return null;
 }
 
+//whitelist website checker
+function checkWhitelistedDomain(url, config) {
+  const domain = new URL(url).hostname.replace(/^www\./, '');
+  return config.whitelistDomains.includes(domain);
+}
+
 module.exports = {
   checkTLD,
   checkKeywords,
   checkPatterns,
   checkSSL,
   checkDomainAge,
-  checkExternalLinks
+  checkExternalLinks,
+  checkWhitelistedDomain
 };

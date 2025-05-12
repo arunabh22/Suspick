@@ -36,7 +36,7 @@ async function analyzeURL() {
       <strong style="color:${color};">${data.verdict.toUpperCase()}</strong><br/>
       Score: ${data.score}<br/>
       Reasons:
-      <ul>${data.reasons.map(r => `<li>${r}</li>`).join('')}</ul>
+      <ul style="list-style-type: none;">${data.reasons.map(r => `<li>${r}</li>`).join('')}</ul>
     `;
   } catch (error) {
     resultEl.innerHTML = `<span style="color:orange;">Error: ${error.message}</span>`;
