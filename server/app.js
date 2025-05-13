@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.post('/analyze', async (req, res) => {
-  const deep = req.query.deep === 'true';
+  const deep = req.query.deep === 'true'; //optional api
   const { url } = req.body;
   const reasons = [];
   let progress = 0;
@@ -33,15 +33,15 @@ app.post('/analyze', async (req, res) => {
 
   //check whitelisted sites
   if (checkWhitelistedDomain(url, config)) {
-  return res.json({
-    verdict: 'safe',
-    progress: 100,
-    score: 100,
-    reasons: ['✅ Domain is on the trusted whitelist']
-  });
-}
+    return res.json({
+      verdict: 'safe',
+      progress: 100,
+      score: 100,
+      reasons: ['Domain is on the trusted whitelist']
+    });
+  }
 
-  // Run Safe Browsing *first* if deep scan is enabled
+  // Run Safe Browsing if deep scan is enabled
   let verdict = 'safe';
   if (deep) {
     const threatData = await checkSafeBrowsing(url);

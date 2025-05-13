@@ -47,11 +47,7 @@
     ".in"
   ],
   "suspiciousKeywords": [
-    "update",
-    "urgent",
     "limited time",
-    "urgent",
-    "immediate",
     "act now",
     "verify now",
     "suspended",
@@ -89,7 +85,7 @@
     "confirm password",
     "credit card declined"
   ],
-  "suspiciousPatterns": [
+  "suspiciousPatterns": [           
     "@.*\\.",
     "free[-]?\\w*",
     ".*\\.offer",
